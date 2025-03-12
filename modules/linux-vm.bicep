@@ -1,7 +1,7 @@
 param location string
 param vmName string
 param adminUsername string
-param adminPassword string
+param adminPublicKey string
 
 resource vnet 'Microsoft.Network/virtualNetworks@2021-05-01' = {
   name: '${vmName}-vnet'
@@ -63,7 +63,17 @@ resource vm 'Microsoft.Compute/virtualMachines@2021-07-01' = {
     osProfile: {
       computerName: vmName
       adminUsername: adminUsername
-      adminPassword: adminPassword
+      linuxConfiguration: {
+        disablePasswordAuthentication: true
+        ssh: {
+          publicKeys: [
+            {
+              path: '/home/${adminUsername}/.ssh/authorized_keys'
+              keyData: adminPublicKey
+            }
+          ]
+        }
+      }
     }
     storageProfile: {
       imageReference: {
@@ -85,5 +95,3 @@ resource vm 'Microsoft.Compute/virtualMachines@2021-07-01' = {
     }
   }
 }
-
-output publicIpAddress string = publicIp.properties.ipAddress
